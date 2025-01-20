@@ -1,44 +1,34 @@
 from fastapi import APIRouter, HTTPException
-from app.models import User
-from app.config.db import user_collection
+from app.config.db import users_collection
+from app.schemas.user import User, UserResponse
+from app.utils.helpers import user_helper
 from bson import ObjectId
+from typing import List
 
 router = APIRouter()
 
-@router.post("/create-user", response_model=User)
+@router.post("/users", response_model=UserResponse)
 async def create_user(user: User):
-    user_data = user.model_dump()
-    result = user_collection.insert_one(user_data)
-    return {**user_data, "id": str(result.inserted_id)}
+    if await users_collection.find_one({"email": user.email}):
+        raise HTTPException(status_code=400, detail="User with this email already exists.")
+    new_user = await users_collection.insert_one(user.dict())
+    created_user = await users_collection.find_one({"_id": new_user.inserted_id})
+    return user_helper(created_user)
 
-@router.get("/get-user/{user_id}", response_model=User)
+@router.get("/users/{user_id}", response_model=UserResponse)
 async def get_user(user_id: str):
-    user = user_collection.find_one({"_id": ObjectId(user_id)})
-    if user:
-        return {**user, "id": str(user["_id"])}
-    raise HTTPException(status_code=404, detail="User not found")
+    user = await users_collection.find_one({"_id": ObjectId(user_id)})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return user_helper(user)
 
-@router.get("/list-users", response_model=list[User])
+@router.get("/users", response_model=List[UserResponse])
 async def list_users():
-    users = [{**user, "id": str(user["_id"])} for user in user_collection.find()]
-    return users
+    users = await users_collection.find().to_list(100)
+    return [user_helper(user) for user in users]
 
-@router.put("/edit-user/{user_id}", response_model=User)
-async def edit_user(user_id: str, user: User):
-    updated_user = user.dict()
-    result = user_collection.update_one({"_id": ObjectId(user_id)}, {"$set": updated_user})
-    
-    if result.modified_count == 1:
-        updated_user["id"] = user_id
-        return updated_user
-    
-    raise HTTPException(status_code=404, detail="User not found")
-
-@router.delete("/delete-user/{user_id}")
+@router.delete("/users/{user_id}", status_code=204)
 async def delete_user(user_id: str):
-    result = user_collection.delete_one({"_id": ObjectId(user_id)})
-    
-    if result.deleted_count == 1:
-        return {"detail": "User deleted successfully"}
-    
-    raise HTTPException(status_code=404, detail="User not found")
+    result = await users_collection.delete_one({"_id": ObjectId(user_id)})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found.")

@@ -1,13 +1,10 @@
-from pymongo import MongoClient
-import os
+from motor.motor_asyncio import AsyncIOMotorClient
+from decouple import config
 
-# Load environment variables from .env file (if using python-dotenv)
-from dotenv import load_dotenv
+# MongoDB configuration
+MONGO_URI = config("MONGO_URI", default="mongodb://localhost:27017")
+DATABASE_NAME = "users_db"
 
-load_dotenv()
-
-MONGODB_URI = os.getenv("MONGODB_URI")
-
-client = MongoClient(MONGODB_URI)
-db = client["user_database"]
-user_collection = db["users"]
+client = AsyncIOMotorClient(MONGO_URI)
+database = client["test"]
+users_collection = database["users"]
