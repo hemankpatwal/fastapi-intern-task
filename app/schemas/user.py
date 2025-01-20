@@ -1,4 +1,5 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
+from pydantic.networks import EmailStr
 from typing import Optional
 
 class User(BaseModel):

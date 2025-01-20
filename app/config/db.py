@@ -6,5 +6,5 @@ MONGO_URI = config("MONGO_URI", default="mongodb://localhost:27017")
 DATABASE_NAME = "users_db"
 
 client = AsyncIOMotorClient(MONGO_URI)
-database = client["test"]
+database = client["users_db"]
 users_collection = database["users"]
