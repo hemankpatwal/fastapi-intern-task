@@ -1,10 +1,14 @@
 import pytest
+import  sys
+import os
+from pathlib import Path
 from fastapi.testclient import TestClient
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.main import app
 from app.config.db import database, users_collection
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+from app.main import app
 
 TEST_DATABASE_NAME = "test_users_db"
 

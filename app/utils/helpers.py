@@ -1,7 +1,7 @@
-def user_helper(user):
+def user_helper(user) -> dict:
     return {
         "id": str(user["_id"]),
-        "name": user["name"],
         "email": user["email"],
-        "age": user.get("age"),
+        "name": user["name"],
+        # other fields as needed
     }

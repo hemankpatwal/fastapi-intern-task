@@ -3,12 +3,13 @@ from app.routes import users
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.responses import HTMLResponse
-from starlette.staticfiles import StaticFiles
 
 
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+app.include_router(users.router)
 
 # Define a route for the root path
 @app.get("/", response_class=HTMLResponse)
